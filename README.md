@@ -41,8 +41,7 @@ messages:
   player-info: "<#aaaaaa>Joueur: <#55ffff>%player% <#888888>| <#aaaaaa>Client: <#55ffff>%brand% <#888888>| <#aaaaaa>Bedrock: <#55ffff>%is_bedrock%"
   player-check: "<#aaaaaa>Infos sur <#55ffff>%target% <#888888>: <#ffffff>Client: <#55ffff>%brand% <#888888>| <#aaaaaa>Bedrock: <#55ffff>%is_bedrock%"
   player-not-found: "<#ff5555>Ce joueur n'est pas en ligne."
-### Partie 2 (API jusqu'à la fin)
-```markdown
+```
 ---
 
 ## 💻 Utilisation de l'API
@@ -62,6 +61,7 @@ boolean isBedrock = api.isBedrock(player);
 
 // Récupérer le nom du client (Brand)
 String brand = api.getClientBrand(player);
+```
 
 ## 📜 Commandes & Permissions
 
@@ -79,3 +79,4 @@ Pour compiler le projet vous-même :
 3. Exécutez la commande suivante :
 ```bash
 mvn clean package
+```
