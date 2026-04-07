@@ -1,0 +1,11 @@
+name: ClientDetectorExtra
+version: '1.0'
+main: santexfr.ClientDetectorExtra
+api-version: "1.17"
+folia-supported: true
+load: POSTWORLD
+author: SantexFR
+commands:
+  clientdetector:
+    description: Commande principale du plugin.
+    aliases: [cdetect]

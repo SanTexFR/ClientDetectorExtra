@@ -1,0 +1,127 @@
+package santexfr;
+
+import com.cjcrafter.foliascheduler.FoliaCompatibility;
+import com.cjcrafter.foliascheduler.ServerImplementation;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.bukkit.ChatColor;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
+import santexfr.api.ClientDetectorAPI;
+import santexfr.internal.ClientDetectorProvider;
+
+import java.util.concurrent.ConcurrentHashMap;
+
+@SuppressWarnings({"unused","UnusedReturnValue"})
+public final class ClientDetectorExtra extends JavaPlugin{
+    //VARIABLES(INSTANCES)
+    private static ServerImplementation serverImplementation;
+
+    private static ClientDetectorExtra instance;
+    private static ClientDetectorAPI api;
+
+    //VARIABLES(CONFIG)
+    private boolean notifyConsole;
+    private boolean notifyAdmin;
+    private String adminPermission;
+    private String cachedPrefix;
+    private final@NotNull ConcurrentHashMap<@NotNull String,@NotNull String>msgCache=new ConcurrentHashMap<>();
+
+    //METHODS(INSTANCES)
+    @Override
+    public void onEnable(){
+        instance=this;
+        api=new ClientDetectorProvider();
+
+        serverImplementation=new FoliaCompatibility(this).getServerImplementation();
+
+        saveDefaultConfig();
+        loadConfiguration();
+
+        final var command=getCommand("clientdetector");
+        if(command!=null){
+            command.setExecutor(new ClientCommand());
+            command.setTabCompleter(new ClientTabCompleter());
+        }
+
+        getServer().getPluginManager().registerEvents(new DetectorManager(),this);
+    }
+
+    @Override
+    public void onDisable(){
+        msgCache.clear();
+    }
+
+    //METHODS(STATICS)
+    static@NotNull ClientDetectorExtra getInstance(){
+        return instance;
+    }
+    static ServerImplementation getServerImplementation(){
+        return serverImplementation;
+    }
+
+    //METHODS(CONFIG)
+    public void loadConfiguration(){
+        reloadConfig();
+        this.notifyConsole=getConfig().getBoolean("notify-console",true);
+        this.notifyAdmin=getConfig().getBoolean("notify-admin",true);
+        this.adminPermission=getConfig().getString("permission","clientdetector.admin");
+        this.cachedPrefix=color(getConfig().getString("messages.prefix", "&8[&bClientDetector&8] &f"));
+
+        msgCache.clear();
+        final String prefix=getConfig().getString("messages.prefix","");
+
+        final ConfigurationSection section=getConfig().getConfigurationSection("messages");
+        if(section==null)return;
+
+        for(final String key:section.getKeys(false)){
+            if(key.equals("prefix"))continue;
+
+            final String rawPath="messages."+key;
+            final String rawMsg=getConfig().getString(rawPath,"");
+
+            msgCache.put(key,color(rawMsg));
+            msgCache.put(key+"_prefixed",color(prefix+rawMsg));
+        }
+    }
+    private@NotNull String color(@NotNull String text){
+        if(text.isEmpty())return"";
+
+        try {
+            return LegacyComponentSerializer.legacySection().serialize(
+                    MiniMessage.miniMessage().deserialize(text)
+            );
+        }catch(Exception e){
+            getLogger().warning("Erreur de format MiniMessage dans la config : "+text);
+            return text;
+        }
+    }
+    
+    //API
+    public@NotNull String getMessage(@NotNull String key){
+        return msgCache.getOrDefault(key+"_prefixed","§cMissing msg: "+key);
+    }
+    public@NotNull String getRawMessage(@NotNull String key){
+        return msgCache.getOrDefault(key,"§cMissing msg: "+key);
+    }
+    public@NotNull String getPrefix(){
+        return this.cachedPrefix;
+    }
+
+    public boolean isNotifyConsole(){
+        return this.notifyConsole;
+    }
+    public boolean isNotifyAdmin(){
+        return this.notifyAdmin;
+    }
+    public@NotNull String getAdminPermission(){
+        return this.adminPermission;
+    }
+
+    //METHODS(API)
+    public static@NotNull ClientDetectorAPI getApi() {
+        if(api==null)throw new IllegalStateException("ClientDetectorAPI isn't fully loaded!");
+        return api;
+    }
+}
