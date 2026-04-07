@@ -4,6 +4,7 @@ import com.cjcrafter.foliascheduler.FoliaCompatibility;
 import com.cjcrafter.foliascheduler.ServerImplementation;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -46,6 +47,8 @@ public final class ClientDetectorExtra extends JavaPlugin{
         }
 
         getServer().getPluginManager().registerEvents(new DetectorManager(),this);
+
+        final Metrics metrics=new Metrics(this,30634);
     }
 
     @Override
