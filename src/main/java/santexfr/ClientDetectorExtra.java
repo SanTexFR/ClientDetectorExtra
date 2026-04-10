@@ -51,6 +51,9 @@ public final class ClientDetectorExtra extends JavaPlugin{
         getServer().getPluginManager().registerEvents(new ClientMenu(),this);
 
         final Metrics metrics=new Metrics(this,30634);
+
+        //UPDATER
+        Updater.checkForUpdates();
     }
 
     @Override
