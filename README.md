@@ -10,7 +10,7 @@
 * **🌌 Compatibilité Folia :** Utilise `foliascheduler` pour une exécution thread-safe sur les serveurs multithreadés.
 * **🎨 Full HEX & MiniMessage :** Support complet des couleurs Hexadécimales, des dégradés (gradients) et des styles modernes.
 * **📱 Support Geyser/Bedrock :** Détecte automatiquement si un joueur provient de l'édition Bedrock.
-* **📢 Notifications Flexibles :** Alertes configurables pour la console et les administrateurs en ligne.
+* **📢 Notifications Flexibles :** Alertes configurables et système de vérification de mise à jour automatique.
 
 ---
 
@@ -30,16 +30,31 @@
 Le plugin utilise le format **MiniMessage**. Vous pouvez utiliser des balises comme `<gradient:#55ffff:#5555ff>` ou des codes HEX `<#FFFFFF>`.
 
 ```yaml
+check-for-update: true
 notify-console: true
 notify-admin: true
 permission: "clientdetector.admin"
 
 messages:
+  #GUI
+  gui-main-title: "<#888888>▶ Clients (Page %page%)"
+  gui-sub-title: "<#888888>▶ %brand% (Page %page%)"
+  gui-next-page: "<#ffa500>« Page Précédente"
+  gui-previous-page: "<#ffa500>Page Suivante »"
+  gui-back-button: "<#ff5555>Retour au Menu Principal"
+  gui-client-lore:
+    - "<#aaaaaa>Cliquez pour voir les joueurs."
+    - ""
+    - "<#ffffff>Joueurs : <#55ffff>%count%"
+  gui-player-lore:
+    - "<#aaaaaa>UUID: <#ffffff>%uuid%"
+    - "<#aaaaaa>Bedrock: <#55ffff>%is_bedrock%"
+
   prefix: "<#888888>[<gradient:#55ffff:#5555ff>ClientDetector</gradient><#888888>] <#ffffff>"
   reload: "<#55ff55>La configuration a été rechargée !"
   no-permission: "<#ff5555>Tu n'as pas la permission d'utiliser cela."
   player-info: "<#aaaaaa>Joueur: <#55ffff>%player% <#888888>| <#aaaaaa>Client: <#55ffff>%brand% <#888888>| <#aaaaaa>Bedrock: <#55ffff>%is_bedrock%"
-  player-check: "<#aaaaaa>Infos sur <#55ffff>%target% <#888888>: <#ffffff>Client: <#55ffff>%brand% <#888888>| <#aaaaaa>Bedrock: <#55ffff>%is_bedrock%"
+  player-check: "<#aaaaaa>Infos sur <#55ffff>%target% <#888888>: <#aaaaaa>Client: <#55ffff>%brand% <#888888>| <#aaaaaa>Bedrock: <#55ffff>%is_bedrock%"
   player-not-found: "<#ff5555>Ce joueur n'est pas en ligne."
 ```
 ---
@@ -61,12 +76,16 @@ boolean isBedrock = api.isBedrock(player);
 
 // Récupérer le nom du client (Brand)
 String brand = api.getClientBrand(player);
+
+// Récupérer la liste des joueurs utilisant un client spécifique
+List<Player> lunarPlayers = api.getPlayersByClientBrand("lunarclient:v1_20");
 ```
 
 ## 📜 Commandes & Permissions
 
 * `/clientdetector reload` : Recharge la configuration.
 * `/clientdetector info <joueur>` : Affiche les détails d'un joueur spécifique.
+* `/clientdetector gui` : Ouvre un menu interactif listant tous les types de clients actifs et leurs utilisateurs respectifs.
 * **Alias :** `/cdetect`
 
 ---
