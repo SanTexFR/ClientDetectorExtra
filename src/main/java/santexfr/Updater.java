@@ -11,7 +11,7 @@ import java.net.URL;
 public class Updater{
     //VARIABLES (STATICS)
     public static final@NotNull String USER="SanTexFR";
-    public static final@NotNull String REPO="ClientDetectorExtra\n";
+    public static final@NotNull String REPO="ClientDetectorExtra";
 
     //METHODS (STATICSà
     public static void checkForUpdates(){
@@ -23,14 +23,14 @@ public class Updater{
                     ClientDetectorExtra.getServerImplementation().global().run(()->{
                         ClientDetectorExtra.getInstance().getLogger().warning("=================================================");
                         ClientDetectorExtra.getInstance().getLogger().warning(" Une nouvelle version de ClientDetectorExtra\n est disponible !");
-                        ClientDetectorExtra.getInstance().getLogger().warning(" Version installée: v{}"+currentVersion);
-                        ClientDetectorExtra.getInstance().getLogger().warning(" Nouvelle version: {}"+latestTag);
+                        ClientDetectorExtra.getInstance().getLogger().warning(" Version installée: v"+currentVersion);
+                        ClientDetectorExtra.getInstance().getLogger().warning(" Nouvelle version: "+latestTag);
                         ClientDetectorExtra.getInstance().getLogger().warning(" Téléchargement: https://github.com/"+USER+"/"+REPO+"/releases/latest");
                         ClientDetectorExtra.getInstance().getLogger().warning("=================================================");
                     });
                 }
             }catch(Exception e){
-                ClientDetectorExtra.getInstance().getLogger().warning("Impossible de vérifier les mises à jour: {}"+e.getMessage());
+                ClientDetectorExtra.getInstance().getLogger().warning("Impossible de vérifier les mises à jour: "+e.getMessage());
             }
         });
     }
