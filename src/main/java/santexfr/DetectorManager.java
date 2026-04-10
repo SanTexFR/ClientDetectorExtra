@@ -5,11 +5,24 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.jetbrains.annotations.NotNull;
 import santexfr.api.ClientDetectorAPI;
+
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings({"unused","UnusedReturnValue"})
 public class DetectorManager implements Listener{
+    //VARIABLES(STATICS)
+    private static final@NotNull ConcurrentHashMap<@NotNull String,@NotNull Set<@NotNull Player>>clientCache=new ConcurrentHashMap<>();
 
+    //METHODS(STATICS)
+    public static@NotNull ConcurrentHashMap<@NotNull String,@NotNull Set<@NotNull Player>>getClientCache(){
+        return clientCache;
+    }
+
+    //METHODS(INSTANCES)
     @EventHandler
     public void onJoin(PlayerJoinEvent e){
         final ClientDetectorExtra instance=ClientDetectorExtra.getInstance();
@@ -17,9 +30,12 @@ public class DetectorManager implements Listener{
 
         final Player p=e.getPlayer();
         ClientDetectorExtra.getServerImplementation().entity(p).runDelayed(()->{
+            if(!p.isOnline())return;
             final ClientDetectorAPI api=ClientDetectorExtra.getApi();
 
             final String brand=api.getClientBrand(p);
+            clientCache.computeIfAbsent(brand,k->ConcurrentHashMap.newKeySet()).add(p);
+
             final boolean bedrock=api.isBedrock(p);
 
             final String format=instance.getRawMessage("player-info");
@@ -41,5 +57,14 @@ public class DetectorManager implements Listener{
             if(instance.isNotifyConsole())
                 Bukkit.getConsoleSender().sendMessage(finalMessage);
         }, 3L);
+    }
+    @EventHandler
+    public void onQuit(PlayerQuitEvent e){
+        final Player p=e.getPlayer();
+
+        for(Set<Player>players:clientCache.values())
+            players.remove(p);
+
+        clientCache.entrySet().removeIf(entry->entry.getValue().isEmpty());
     }
 }

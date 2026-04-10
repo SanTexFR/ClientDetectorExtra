@@ -5,13 +5,13 @@ import com.cjcrafter.foliascheduler.ServerImplementation;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bstats.bukkit.Metrics;
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import santexfr.api.ClientDetectorAPI;
 import santexfr.internal.ClientDetectorProvider;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings({"unused","UnusedReturnValue"})
@@ -28,6 +28,7 @@ public final class ClientDetectorExtra extends JavaPlugin{
     private String adminPermission;
     private String cachedPrefix;
     private final@NotNull ConcurrentHashMap<@NotNull String,@NotNull String>msgCache=new ConcurrentHashMap<>();
+    private final@NotNull ConcurrentHashMap<@NotNull String,@NotNull List<@NotNull String>>listMsgCache=new ConcurrentHashMap<>();
 
     //METHODS(INSTANCES)
     @Override
@@ -47,6 +48,7 @@ public final class ClientDetectorExtra extends JavaPlugin{
         }
 
         getServer().getPluginManager().registerEvents(new DetectorManager(),this);
+        getServer().getPluginManager().registerEvents(new ClientMenu(),this);
 
         final Metrics metrics=new Metrics(this,30634);
     }
@@ -73,6 +75,7 @@ public final class ClientDetectorExtra extends JavaPlugin{
         this.cachedPrefix=color(getConfig().getString("messages.prefix", "&8[&bClientDetector&8] &f"));
 
         msgCache.clear();
+        listMsgCache.clear();
         final String prefix=getConfig().getString("messages.prefix","");
 
         final ConfigurationSection section=getConfig().getConfigurationSection("messages");
@@ -83,6 +86,15 @@ public final class ClientDetectorExtra extends JavaPlugin{
 
             final String rawPath="messages."+key;
             final String rawMsg=getConfig().getString(rawPath,"");
+
+            if(getConfig().isList(rawPath)){
+                final List<String>coloredList=getConfig().getStringList(rawPath).stream()
+                        .map(this::color)
+                        .collect(java.util.stream.Collectors.toList());
+                listMsgCache.put(key,coloredList);
+
+                continue;
+            }
 
             msgCache.put(key,color(rawMsg));
             msgCache.put(key+"_prefixed",color(prefix+rawMsg));
@@ -108,6 +120,11 @@ public final class ClientDetectorExtra extends JavaPlugin{
     public@NotNull String getRawMessage(@NotNull String key){
         return msgCache.getOrDefault(key,"§cMissing msg: "+key);
     }
+
+    public@NotNull List<String>getMessageList(@NotNull String key){
+        return listMsgCache.getOrDefault(key,java.util.Collections.singletonList("§cMissing list: "+key));
+    }
+
     public@NotNull String getPrefix(){
         return this.cachedPrefix;
     }

@@ -24,6 +24,15 @@ public class ClientCommand implements CommandExecutor{
             return true;
         }
 
+        if(args.length>0&&(args[0].equalsIgnoreCase("gui")||args[0].equalsIgnoreCase("menu"))){
+            if(s instanceof Player){
+                ClientMenu.openMainMenu((Player) s,0);
+            } else {
+                s.sendMessage(instance.getPrefix() + "§cSeul un joueur peut ouvrir le menu.");
+            }
+            return true;
+        }
+
         if(args.length>1&&(args[0].equalsIgnoreCase("info")||args[0].equalsIgnoreCase("check"))){
             final Player target=Bukkit.getPlayer(args[1]);
             if(target==null){
@@ -46,6 +55,7 @@ public class ClientCommand implements CommandExecutor{
         s.sendMessage("§b--- ClientDetectorExtra ---");
         s.sendMessage("§f/"+label+" info <joueur> §7- Voir le client d'un joueur");
         s.sendMessage("§f/"+label+" reload §7- Recharge la config");
+        s.sendMessage("§f/"+label+" gui §7- Ouvre le menu des clients");
         return true;
     }
 }

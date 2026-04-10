@@ -3,6 +3,20 @@ notify-admin: true
 permission: "clientdetector.admin"
 
 messages:
+  #GUI
+  gui-main-title: "<#888888>▶ Clients (Page %page%)"
+  gui-sub-title: "<#888888>▶ %brand% (Page %page%)"
+  gui-next-page: "<#ffa500>« Page Précédente"
+  gui-previous-page: "<#ffa500>Page Suivante »"
+  gui-back-button: "<#ff5555>Retour au Menu Principal"
+  gui-client-lore:
+    - "<#aaaaaa>Cliquez pour voir les joueurs."
+    - ""
+    - "<#ffffff>Joueurs : <#55ffff>%count%"
+  gui-player-lore:
+    - "<#aaaaaa>UUID: <#ffffff>%uuid%"
+    - "<#aaaaaa>Bedrock: <#55ffff>%is_bedrock%"
+
   prefix: "<#888888>[<gradient:#55ffff:#5555ff>ClientDetector</gradient><#888888>] <#ffffff>"
   reload: "<#55ff55>La configuration a été rechargée !"
   no-permission: "<#ff5555>Tu n'as pas la permission d'utiliser cela."
