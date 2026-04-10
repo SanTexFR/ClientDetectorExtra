@@ -1,3 +1,4 @@
+check-for-update: true
 notify-console: true
 notify-admin: true
 permission: "clientdetector.admin"

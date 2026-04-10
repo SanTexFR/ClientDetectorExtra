@@ -23,6 +23,7 @@ public final class ClientDetectorExtra extends JavaPlugin{
     private static ClientDetectorAPI api;
 
     //VARIABLES(CONFIG)
+    private boolean checkForUpdate;
     private boolean notifyConsole;
     private boolean notifyAdmin;
     private String adminPermission;
@@ -53,7 +54,7 @@ public final class ClientDetectorExtra extends JavaPlugin{
         final Metrics metrics=new Metrics(this,30634);
 
         //UPDATER
-        Updater.checkForUpdates();
+        if(checkForUpdate)Updater.checkForUpdates();
     }
 
     @Override
@@ -72,6 +73,7 @@ public final class ClientDetectorExtra extends JavaPlugin{
     //METHODS(CONFIG)
     public void loadConfiguration(){
         reloadConfig();
+        this.checkForUpdate=getConfig().getBoolean("check-for-update",true);
         this.notifyConsole=getConfig().getBoolean("notify-console",true);
         this.notifyAdmin=getConfig().getBoolean("notify-admin",true);
         this.adminPermission=getConfig().getString("permission","clientdetector.admin");
