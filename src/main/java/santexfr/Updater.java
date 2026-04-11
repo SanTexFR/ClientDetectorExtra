@@ -50,13 +50,22 @@ public class Updater{
 
         return json.toString().split("\"tag_name\":\"")[1].split("\"")[0];
     }
-    public static boolean isNewerVersion(@NotNull String latest,@NotNull String current){
-        try{
-            final float newV=Float.parseFloat(latest.replace("v",""));
-            final float curV=Float.parseFloat(current);
-            return newV>curV;
-        }catch(NumberFormatException e){
+    public static boolean isNewerVersion(@NotNull String latest, @NotNull String current) {
+        try {
+            String[] latestParts = latest.replace("v", "").split("\\.");
+            String[] currentParts = current.replace("v", "").split("\\.");
+
+            int length = Math.max(latestParts.length, currentParts.length);
+            for (int i = 0; i < length; i++) {
+                int vLatest = i < latestParts.length ? Integer.parseInt(latestParts[i]) : 0;
+                int vCurrent = i < currentParts.length ? Integer.parseInt(currentParts[i]) : 0;
+
+                if (vLatest > vCurrent) return true;
+                if (vLatest < vCurrent) return false;
+            }
+        } catch (Exception e) {
             return false;
         }
+        return false;
     }
 }
