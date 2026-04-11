@@ -42,6 +42,8 @@ messages:
   gui-next-page: "<#ffa500>« Page Précédente"
   gui-previous-page: "<#ffa500>Page Suivante »"
   gui-back-button: "<#ff5555>Retour au Menu Principal"
+  gui-action-title: "<#888888>Actions: <#55ffff>%player%"
+  gui-action-teleport: "<#55ff55>➤ Se téléporter"
   gui-client-lore:
     - "<#aaaaaa>Cliquez pour voir les joueurs."
     - ""
@@ -56,6 +58,16 @@ messages:
   player-info: "<#aaaaaa>Joueur: <#55ffff>%player% <#888888>| <#aaaaaa>Client: <#55ffff>%brand% <#888888>| <#aaaaaa>Bedrock: <#55ffff>%is_bedrock%"
   player-check: "<#aaaaaa>Infos sur <#55ffff>%target% <#888888>: <#aaaaaa>Client: <#55ffff>%brand% <#888888>| <#aaaaaa>Bedrock: <#55ffff>%is_bedrock%"
   player-not-found: "<#ff5555>Ce joueur n'est pas en ligne."
+
+webhooks:
+  enabled: true
+  url: "https://discord.com/api/webhooks/..."
+  all-clients: false # Si true, ignore la liste et alerte pour tout le monde
+  alert-bedrock: true
+  alert-brands:
+    - "forge"
+    - "fabric"
+  message: "🔔 **%player%** a rejoint avec **%brand%** (Bedrock: %is_bedrock%)"
 ```
 ---
 
