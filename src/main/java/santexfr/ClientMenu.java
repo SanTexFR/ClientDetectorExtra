@@ -18,18 +18,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @SuppressWarnings({"unused","UnusedReturnValue"})
-public class ClientMenu implements Listener{
-    //VARIABLES(STATICS)
+public class ClientMenu implements Listener {
     private static final int ITEMS_PER_PAGE=45;
 
-    //UTILS
-    private static@NotNull String getMsg(@NotNull String key) {
+    private static @NotNull String getMsg(@NotNull String key){
         return ClientDetectorExtra.getInstance().getRawMessage(key);
     }
-    private static@NotNull ItemStack createItem(@NotNull Material mat,@NotNull String name){
+
+    private static @NotNull ItemStack createItem(@NotNull Material mat,@NotNull String name){
         final ItemStack item=new ItemStack(mat);
         final ItemMeta meta=item.getItemMeta();
-        if(meta!=null){
+        if(meta != null){
             meta.setDisplayName(name);
             item.setItemMeta(meta);
         }
@@ -37,34 +36,34 @@ public class ClientMenu implements Listener{
     }
 
     private static void addNavigation(@NotNull Inventory inv,int page,int totalItems,boolean isSubMenu){
-        if(page>0)
-            inv.setItem(45,createItem(Material.ARROW, getMsg("gui-previous-page")));
-        
+        if(page > 0)
+            inv.setItem(45,createItem(Material.ARROW,getMsg("gui-previous-page")));
+
         if(isSubMenu)
-            inv.setItem(49,createItem(Material.BARRIER, getMsg("gui-back-button")));
-        
-        if((page+1)*ITEMS_PER_PAGE<totalItems)
+            inv.setItem(49,createItem(Material.BARRIER,getMsg("gui-back-button")));
+
+        if((page+1) * ITEMS_PER_PAGE < totalItems)
             inv.setItem(53,createItem(Material.ARROW,getMsg("gui-next-page")));
     }
 
-    public static void openMainMenu(@NotNull Player player,int page) {
+    public static void openMainMenu(@NotNull Player player,int page){
         final ClientDetectorAPI api=ClientDetectorExtra.getApi();
         final List<String> brands=new ArrayList<>(api.getActiveClientBrands());
 
         final String title=getMsg("gui-main-title").replace("%page%",String.valueOf(page+1));
         final Inventory inv=Bukkit.createInventory(null,54,title);
 
-        int start=page*ITEMS_PER_PAGE;
+        int start=page * ITEMS_PER_PAGE;
         int end=Math.min(start+ITEMS_PER_PAGE,brands.size());
 
-        for(int i=start;i<end;i++){
+        for (int i=start; i < end; i++){
             final String brand=brands.get(i);
             final ItemStack item=new ItemStack(Material.BOOK);
             final ItemMeta meta=item.getItemMeta();
             meta.setDisplayName("§b"+brand);
 
-            final  List<String>lore=ClientDetectorExtra.getInstance().getMessageList("gui-client-lore").stream()
-                    .map(line->line.replace("%count%",String.valueOf(api.getPlayersByClientBrand(brand).size())))
+            final List<String> lore=ClientDetectorExtra.getInstance().getMessageList("gui-client-lore").stream()
+                    .map(line -> line.replace("%count%",String.valueOf(api.getPlayersByClientBrand(brand).size())))
                     .collect(Collectors.toList());
 
             meta.setLore(lore);
@@ -76,9 +75,9 @@ public class ClientMenu implements Listener{
         player.openInventory(inv);
     }
 
-    public static void openPlayerListMenu(@NotNull Player player,@NotNull String brand,int page) {
+    public static void openPlayerListMenu(@NotNull Player player,@NotNull String brand,int page){
         final ClientDetectorAPI api=ClientDetectorExtra.getApi();
-        final List<Player>players=api.getPlayersByClientBrand(brand);
+        final List<Player> players=api.getPlayersByClientBrand(brand);
 
         final String title=getMsg("gui-sub-title")
                 .replace("%brand%",brand)
@@ -86,19 +85,19 @@ public class ClientMenu implements Listener{
 
         final Inventory inv=Bukkit.createInventory(null,54,title);
 
-        final int start=page*ITEMS_PER_PAGE;
+        final int start=page * ITEMS_PER_PAGE;
         final int end=Math.min(start+ITEMS_PER_PAGE,players.size());
 
-        for(int i=start;i<end;i++){
+        for (int i=start; i < end; i++){
             final Player target=players.get(i);
             final ItemStack head=new ItemStack(Material.PLAYER_HEAD);
             final SkullMeta meta=(SkullMeta) head.getItemMeta();
             meta.setOwningPlayer(target);
             meta.setDisplayName("§e"+target.getName());
 
-            final List<String>lore=ClientDetectorExtra.getInstance().getMessageList("gui-player-lore").stream()
-                    .map(line->line.replace("%uuid%",target.getUniqueId().toString())
-                            .replace("%is_bedrock%",api.isBedrock(target)?"Oui":"Non"))
+            final List<String> lore=ClientDetectorExtra.getInstance().getMessageList("gui-player-lore").stream()
+                    .map(line -> line.replace("%uuid%",target.getUniqueId().toString())
+                            .replace("%is_bedrock%",api.isBedrock(target) ? "Oui" : "Non"))
                     .collect(Collectors.toList());
 
             meta.setLore(lore);
@@ -110,44 +109,72 @@ public class ClientMenu implements Listener{
         player.openInventory(inv);
     }
 
+    public static void openActionMenu(Player admin,Player target){
+        final String title=getMsg("gui-action-title").replace("%player%",target.getName());
+        Inventory inv=Bukkit.createInventory(null,27,title);
+
+        inv.setItem(11,createItem(Material.ENDER_PEARL,getMsg("gui-action-teleport")));
+        inv.setItem(15,createItem(Material.BARRIER,getMsg("gui-back-button")));
+
+        admin.openInventory(inv);
+    }
+
     @EventHandler
     public void onClick(InventoryClickEvent e){
         final String title=e.getView().getTitle();
         final String mainRoot=getMsg("gui-main-title").split("%page%")[0];
         final String subRoot=getMsg("gui-sub-title").split("%brand%")[0];
+        final String actionRoot=getMsg("gui-action-title").split("%player%")[0];
 
-        if(!title.startsWith(mainRoot)&&!title.startsWith(subRoot))return;
+        if(!title.startsWith(mainRoot) && !title.startsWith(subRoot) && !title.startsWith(actionRoot)) return;
 
         e.setCancelled(true);
         final ItemStack current=e.getCurrentItem();
-        if(current==null||!current.hasItemMeta())return;
+        if(current == null || !current.hasItemMeta()) return;
 
         final Player player=(Player) e.getWhoClicked();
         final String name=current.getItemMeta().getDisplayName();
-
+        
+        if(title.startsWith(actionRoot)){
+            if(name.equals(getMsg("gui-action-teleport"))){
+                String targetName=title.replace(actionRoot,"");
+                Player target=Bukkit.getPlayerExact(targetName);
+                if(target != null){
+                    player.teleportAsync(target.getLocation());
+                    player.sendMessage(ClientDetectorExtra.getInstance().getPrefix()+"§aTéléporté vers "+target.getName());
+                }else {
+                    player.sendMessage(ClientDetectorExtra.getInstance().getPrefix()+"§cJoueur hors ligne.");
+                }
+                player.closeInventory();
+            }else if(name.equals(getMsg("gui-back-button"))){
+                openMainMenu(player,0);
+            }
+            return;
+        }
+        
         int currentPage=0;
-        try{
-            final String[]parts=title.split("Page ");
-            if(parts.length>1)currentPage=Integer.parseInt(parts[1].replaceAll("[^0-9]",""))-1;
-        }catch(Exception ignored){}
+        try {
+            final String[] parts=title.split("Page ");
+            if(parts.length > 1) currentPage=Integer.parseInt(parts[1].replaceAll("[^0-9]",""))-1;
+        } catch (Exception ignored){}
 
         if(name.equals(getMsg("gui-previous-page"))){
-            if (title.startsWith(mainRoot))openMainMenu(player,currentPage-1);
+            if(title.startsWith(mainRoot)) openMainMenu(player,currentPage-1);
             else openPlayerListMenu(player,extractBrand(title,subRoot),currentPage-1);
-        }
-        else if(name.equals(getMsg("gui-next-page"))){
-            if(title.startsWith(mainRoot))openMainMenu(player,currentPage+1);
+        }else if(name.equals(getMsg("gui-next-page"))){
+            if(title.startsWith(mainRoot)) openMainMenu(player,currentPage+1);
             else openPlayerListMenu(player,extractBrand(title,subRoot),currentPage+1);
-        }
-        else if(name.equals(getMsg("gui-back-button"))){
+        }else if(name.equals(getMsg("gui-back-button"))){
             openMainMenu(player,0);
-        }
-        else if(title.startsWith(mainRoot)&&current.getType()==Material.BOOK){
+        }else if(title.startsWith(mainRoot) && current.getType() == Material.BOOK){
             openPlayerListMenu(player,name.replace("§b",""),0);
+        }else if(title.startsWith(subRoot) && current.getType() == Material.PLAYER_HEAD){
+            Player target=Bukkit.getPlayerExact(org.bukkit.ChatColor.stripColor(name));
+            if(target != null) openActionMenu(player,target);
         }
     }
 
-    private@NotNull String extractBrand(@NotNull String title,@NotNull String root){
+    private @NotNull String extractBrand(@NotNull String title,@NotNull String root){
         return title.replace(root,"").split(" \\(")[0];
     }
 }

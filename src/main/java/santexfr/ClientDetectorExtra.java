@@ -9,6 +9,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import santexfr.api.ClientDetectorAPI;
+import santexfr.internal.BrandMessageListener;
 import santexfr.internal.ClientDetectorProvider;
 
 import java.util.List;
@@ -28,6 +29,13 @@ public final class ClientDetectorExtra extends JavaPlugin{
     private boolean notifyAdmin;
     private String adminPermission;
     private String cachedPrefix;
+
+    private boolean webhookEnabled;
+    private String webhookUrl;
+    private boolean webhookAllClients;
+    private boolean webhookAlertBedrock;
+    private List<String>webhookAlertBrands;
+
     private final@NotNull ConcurrentHashMap<@NotNull String,@NotNull String>msgCache=new ConcurrentHashMap<>();
     private final@NotNull ConcurrentHashMap<@NotNull String,@NotNull List<@NotNull String>>listMsgCache=new ConcurrentHashMap<>();
 
@@ -50,6 +58,7 @@ public final class ClientDetectorExtra extends JavaPlugin{
 
         getServer().getPluginManager().registerEvents(new DetectorManager(),this);
         getServer().getPluginManager().registerEvents(new ClientMenu(),this);
+        getServer().getMessenger().registerIncomingPluginChannel(this,"minecraft:brand",new BrandMessageListener());
 
         final Metrics metrics=new Metrics(this,30634);
 
@@ -63,10 +72,10 @@ public final class ClientDetectorExtra extends JavaPlugin{
     }
 
     //METHODS(STATICS)
-    static@NotNull ClientDetectorExtra getInstance(){
+    public static@NotNull ClientDetectorExtra getInstance(){
         return instance;
     }
-    static ServerImplementation getServerImplementation(){
+    public static ServerImplementation getServerImplementation(){
         return serverImplementation;
     }
 
@@ -104,7 +113,20 @@ public final class ClientDetectorExtra extends JavaPlugin{
             msgCache.put(key,color(rawMsg));
             msgCache.put(key+"_prefixed",color(prefix+rawMsg));
         }
+
+        final ConfigurationSection webhookSection=getConfig().getConfigurationSection("webhooks");
+        if(webhookSection==null)return;
+
+        this.webhookEnabled=webhookSection.getBoolean("enabled",false);
+        this.webhookUrl=webhookSection.getString("url","");
+        this.webhookAllClients=webhookSection.getBoolean("all-clients",false);
+        this.webhookAlertBedrock=webhookSection.getBoolean("alert-bedrock",false);
+        this.webhookAlertBrands=webhookSection.getStringList("alert-brands");
+
+        final String webhookMsg=webhookSection.getString("message", "🔔 **%player%** a rejoint avec **%brand%** (Bedrock: %is_bedrock%)");
+        msgCache.put("webhook-message",webhookMsg);
     }
+
     private@NotNull String color(@NotNull String text){
         if(text.isEmpty())return"";
 
@@ -119,6 +141,23 @@ public final class ClientDetectorExtra extends JavaPlugin{
     }
     
     //API
+    public boolean isWebhookEnabled(){
+        return webhookEnabled;
+    }
+    public String getWebhookUrl(){
+        return webhookUrl;
+    }
+    public boolean isWebhookAllClients(){
+        return webhookAllClients;
+    }
+    public boolean isWebhookAlertBedrock(){
+        return webhookAlertBedrock;
+    }
+    public List<String>getWebhookAlertBrands(){
+        return webhookAlertBrands;
+    }
+
+
     public@NotNull String getMessage(@NotNull String key){
         return msgCache.getOrDefault(key+"_prefixed","§cMissing msg: "+key);
     }

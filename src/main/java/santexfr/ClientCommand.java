@@ -18,6 +18,23 @@ public class ClientCommand implements CommandExecutor{
             return true;
         }
 
+        if(args.length>0 && (args[0].equalsIgnoreCase("stats"))) {
+            java.util.Map<String, Integer> stats = ClientDetectorExtra.getApi().getGlobalStats();
+            int total = Bukkit.getOnlinePlayers().size();
+
+            s.sendMessage(instance.getPrefix() + "§8[§bStatistiques Globales§8]");
+            if(total == 0) {
+                s.sendMessage("§cAucun joueur en ligne.");
+                return true;
+            }
+
+            for(java.util.Map.Entry<String, Integer> entry : stats.entrySet()) {
+                double percent = (entry.getValue() * 100.0) / total;
+                s.sendMessage("§7- §b" + entry.getKey() + "§f: " + entry.getValue() + " joueur(s) §8(§a" + String.format("%.1f", percent) + "%§8)");
+            }
+            return true;
+        }
+
         if(args.length>0&&args[0].equalsIgnoreCase("reload")){
             instance.loadConfiguration();
             s.sendMessage(instance.getMessage("reload"));
@@ -56,6 +73,7 @@ public class ClientCommand implements CommandExecutor{
         s.sendMessage("§f/"+label+" info <joueur> §7- Voir le client d'un joueur");
         s.sendMessage("§f/"+label+" reload §7- Recharge la config");
         s.sendMessage("§f/"+label+" gui §7- Ouvre le menu des clients");
+        s.sendMessage("§f/"+label+" stats §7- Affiche les pourcentages");
         return true;
     }
 }
