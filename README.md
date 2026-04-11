@@ -79,6 +79,9 @@ Si vous êtes un développeur, vous pouvez intégrer **ClientDetectorExtra** à 
 ```java
 import santexfr.api.ClientDetectorAPI;
 import santexfr.ClientDetectorExtra;
+import org.bukkit.entity.Player;
+import java.util.List;
+import java.util.Map;
 
 // Récupérer l'instance de l'API
 ClientDetectorAPI api = ClientDetectorExtra.getApi();
@@ -91,6 +94,15 @@ String brand = api.getClientBrand(player);
 
 // Récupérer la liste des joueurs utilisant un client spécifique
 List<Player> lunarPlayers = api.getPlayersByClientBrand("lunarclient:v1_20");
+
+// Obtenir les statistiques globales de connexion
+Map<String, Integer> stats = api.getGlobalStats();
+stats.forEach((brand, count) -> {
+        System.out.println("Client: " + brand + " | Connectés: " + count);
+});
+
+// Nettoyer un nom de client complexe
+String cleanName = api.getBaseBrand("lunarclient:v1_20_4"); // Retourne "LunarClient"
 ```
 
 ## 📜 Commandes & Permissions
