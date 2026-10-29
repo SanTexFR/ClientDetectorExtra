@@ -13,6 +13,7 @@ import santexfr.utils.DiscordWebhook;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings({"unused","UnusedReturnValue"})
@@ -52,6 +53,8 @@ public class DetectorManager implements Listener{
         ClientDetectorExtra.getServerImplementation().entity(p).runDelayed(() -> {
             if (!p.isOnline()) return;
 
+            final String pName=p.getName();
+
             final ClientDetectorAPI api = ClientDetectorExtra.getApi();
             final String brand = api.getClientBrand(p);
             final boolean bedrock = api.isBedrock(p);
@@ -62,7 +65,7 @@ public class DetectorManager implements Listener{
 
                 final String format = instance.getRawMessage("player-info");
                 final String message = format
-                        .replace("%player%", p.getName())
+                        .replace("%player%", pName)
                         .replace("%brand%", brand)
                         .replace("%is_bedrock%", bedrock ? "Oui" : "Non");
                 final String finalMessage = instance.getPrefix() + message;
@@ -73,6 +76,13 @@ public class DetectorManager implements Listener{
 
                 if (instance.isNotifyAdmin()) {
                     final String perm = instance.getAdminPermission();
+                    Bukkit.getGlobalRegionScheduler().execute(instance, () -> {
+                        for (Player admin : Bukkit.getOnlinePlayers()) {
+                            if (admin.hasPermission(perm)) {
+                                admin.sendMessage(finalMessage);
+                            }
+                        }
+                    });
                     ClientDetectorExtra.getServerImplementation().global().run(() -> {
                         for (Player admin : Bukkit.getOnlinePlayers()) {
                             if (admin.hasPermission(perm)) admin.sendMessage(finalMessage);
@@ -80,12 +90,16 @@ public class DetectorManager implements Listener{
                     });
                 }
 
-                handleWebhook(instance, p, brand, bedrock);
+
+                CompletableFuture.runAsync(() ->
+                    handleWebhook(instance, pName, brand, bedrock)
+                );
+
             });
         }, 3L);
     }
 
-    private void handleWebhook(ClientDetectorExtra instance, Player p, String brand, boolean bedrock) {
+    private void handleWebhook(ClientDetectorExtra instance, String name, String brand, boolean bedrock) {
         if (!instance.isWebhookEnabled()) return;
 
         boolean shouldSend = false;
@@ -106,7 +120,7 @@ public class DetectorManager implements Listener{
         if (shouldSend) {
             String webhookFormat = instance.getRawMessage("webhook-message");
             String finalWebhookMessage = webhookFormat
-                    .replace("%player%", p.getName())
+                    .replace("%player%", name)
                     .replace("%brand%", brand)
                     .replace("%is_bedrock%", bedrock ? "Oui" : "Non");
 

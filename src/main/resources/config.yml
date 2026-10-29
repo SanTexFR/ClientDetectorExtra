@@ -31,8 +31,8 @@ messages:
 webhooks:
   enabled: true
   url: "https://discord.com/api/webhooks/..."
-  alert-bedrock: true # Si true, ignore la liste et alerte pour tout le monde
-  all-clients: true
+  alert-bedrock: true
+  all-clients: true # Si true, ignore la liste et alerte pour tout le monde
   alert-brands:
     - "forge"
     - "fabric"
