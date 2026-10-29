@@ -58,13 +58,11 @@ public class DetectorManager implements Listener{
 
             updateBrand(p, brand);
 
-            // 1. Déclencher l'événement personnalisé
             ClientDetectorExtra.getServerImplementation().global().execute(() -> {
                 PlayerClientDetectEvent detectEvent = new PlayerClientDetectEvent(p, brand, bedrock);
                 Bukkit.getPluginManager().callEvent(detectEvent);
             });
 
-            // 2. Gestion de la Blacklist & Actions Automatiques
             checkBlacklistAndExecuteActions(instance, p, brand);
 
             ClientDetectorExtra.getServerImplementation().async().runNow(() -> {
@@ -97,6 +95,8 @@ public class DetectorManager implements Listener{
 
     private void checkBlacklistAndExecuteActions(ClientDetectorExtra instance, Player p, String brand) {
         if (!instance.getConfig().getBoolean("blacklist.enabled", false)) return;
+
+        if (p.hasPermission("clientdetector.bypass.blacklist")) return;
 
         List<String> blacklistedKeywords = instance.getConfig().getStringList("blacklist.restricted-brands");
         boolean isRestricted = false;
