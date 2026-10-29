@@ -1,5 +1,5 @@
 name: ClientDetectorExtra
-version: '1.0.3'
+version: '1.0.4'
 main: santexfr.ClientDetectorExtra
 api-version: "1.17"
 folia-supported: true
