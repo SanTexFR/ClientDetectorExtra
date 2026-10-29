@@ -8,6 +8,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 import santexfr.api.ClientDetectorAPI;
+import santexfr.events.PlayerClientDetectEvent;
 import santexfr.utils.DiscordWebhook;
 
 import java.util.List;
@@ -60,6 +61,11 @@ public class DetectorManager implements Listener{
             final boolean bedrock = api.isBedrock(p);
 
             updateBrand(p, brand);
+
+            ClientDetectorExtra.getServerImplementation().global().execute(() -> {
+                PlayerClientDetectEvent detectEvent = new PlayerClientDetectEvent(p, brand, bedrock);
+                Bukkit.getPluginManager().callEvent(detectEvent);
+            });
 
             ClientDetectorExtra.getServerImplementation().async().runNow(() -> {
 
