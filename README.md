@@ -6,11 +6,13 @@
 
 ## 🚀 Caractéristiques
 
-* **⚡ Performance Extrême :** Système de mise en cache (`msgCache`) pour éviter les lectures de fichiers répétitives.
-* **🌌 Compatibilité Folia :** Utilise `foliascheduler` pour une exécution thread-safe sur les serveurs multithreadés.
-* **🎨 Full HEX & MiniMessage :** Support complet des couleurs Hexadécimales, des dégradés (gradients) et des styles modernes.
-* **📱 Support Geyser/Bedrock :** Détecte automatiquement si un joueur provient de l'édition Bedrock.
-* **📢 Notifications Flexibles :** Alertes configurables et système de vérification de mise à jour automatique.
+- **⚡ Performance Extrême :** Système de mise en cache (`msgCache`) pour éviter les lectures de fichiers répétitives.
+- **🌌 Compatibilité Folia :** Utilise `foliascheduler` pour une exécution thread-safe sur les serveurs multithreadés.
+- **🎨 Full HEX & MiniMessage :** Support complet des couleurs Hexadécimales, des dégradés (gradients) et des styles modernes.
+- **📱 Support Geyser/Bedrock :** Détecte automatiquement si un joueur provient de l'édition Bedrock.
+- **📢 Notifications & Webhooks :** Alertes configurables en jeu, sur la console et directement dans un salon Discord via Webhook.
+- **⛔ Blacklist & Actions Automatiques :** Restriction de clients/mods non autorisés avec sanctions personnalisées (`KICK`, `BAN`, `COMMAND`, `NOTIFY`).
+- **📋 Export de Rapport (Dump) :** Génération rapide de rapports de données en ligne via l'API `pastes.dev`.
 
 ---
 
@@ -61,65 +63,20 @@ messages:
 
 webhooks:
   enabled: true
-  url: "https://discord.com/api/webhooks/..."
+  url: "[https://discord.com/api/webhooks/](https://discord.com/api/webhooks/)..."
   all-clients: false # Si true, ignore la liste et alerte pour tout le monde
   alert-bedrock: true
   alert-brands:
     - "forge"
     - "fabric"
   message: "🔔 **%player%** a rejoint avec **%brand%** (Bedrock: %is_bedrock%)"
-```
----
 
-## 💻 Utilisation de l'API
-
-Si vous êtes un développeur, vous pouvez intégrer **ClientDetectorExtra** à votre propre plugin.
-
-### 1. Accéder à l'API
-```java
-import santexfr.api.ClientDetectorAPI;
-import santexfr.ClientDetectorExtra;
-import org.bukkit.entity.Player;
-import java.util.List;
-import java.util.Map;
-
-// Récupérer l'instance de l'API
-ClientDetectorAPI api = ClientDetectorExtra.getApi();
-
-// Vérifier si un joueur est sur Bedrock
-boolean isBedrock = api.isBedrock(player);
-
-// Récupérer le nom du client (Brand)
-String brand = api.getClientBrand(player);
-
-// Récupérer la liste des joueurs utilisant un client spécifique
-List<Player> lunarPlayers = api.getPlayersByClientBrand("lunarclient:v1_20");
-
-// Obtenir les statistiques globales de connexion
-Map<String, Integer> stats = api.getGlobalStats();
-stats.forEach((brand, count) -> {
-        System.out.println("Client: " + brand + " | Connectés: " + count);
-});
-
-// Nettoyer un nom de client complexe
-String cleanName = api.getBaseBrand("lunarclient:v1_20_4"); // Retourne "LunarClient"
-```
-
-## 📜 Commandes & Permissions
-
-* `/clientdetector reload` : Recharge la configuration.
-* `/clientdetector info <joueur>` : Affiche les détails d'un joueur spécifique.
-* `/clientdetector gui` : Ouvre un menu interactif listant tous les types de clients actifs et leurs utilisateurs respectifs.
-* **Alias :** `/cdetect`
-
----
-
-## 🛠️ Compilation
-
-Pour compiler le projet vous-même :
-1. Clonez le dépôt.
-2. Assurez-vous d'avoir **Maven** et **Java 21** installés.
-3. Exécutez la commande suivante :
-```bash
-mvn clean package
-```
+blacklist:
+  enabled: true
+  restricted-brands:
+    - "meteor"
+    - "wurst"
+    - "cheat"
+  actions:
+    - "NOTIFY"
+    - "KICK:<red>Les clients modifiés ne sont pas autorisés sur ce serveur !"
