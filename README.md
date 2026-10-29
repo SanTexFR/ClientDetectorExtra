@@ -27,6 +27,91 @@
 
 ---
 
+## 💻 Utilisation de l'API & Événements
+
+Si vous êtes un développeur, vous pouvez facilement intégrer **ClientDetectorExtra** à votre propre plugin.
+
+### 1. Événement personnalisé (`PlayerClientDetectEvent`)
+Déclenché dès que le client d'un joueur est identifié par le serveur :
+
+```java
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import santexfr.events.PlayerClientDetectEvent;
+
+public class MyListener implements Listener {
+
+    @EventHandler
+    public void onClientDetect(PlayerClientDetectEvent event) {
+        String player = event.getPlayer().getName();
+        String brand = event.getClientBrand();
+        boolean bedrock = event.isBedrock();
+
+        System.out.println(player + " s'est connecté avec " + brand + " (Bedrock: " + bedrock + ")");
+    }
+}
+```
+
+### 2. Méthodes de l'API
+```java
+import santexfr.api.ClientDetectorAPI;
+import santexfr.ClientDetectorExtra;
+import org.bukkit.entity.Player;
+import java.util.List;
+import java.util.Map;
+
+// Récupérer l'instance de l'API
+ClientDetectorAPI api = ClientDetectorExtra.getApi();
+
+// Vérifier si un joueur est sur Bedrock
+boolean isBedrock = api.isBedrock(player);
+
+// Récupérer le nom du client (Brand)
+String brand = api.getClientBrand(player);
+
+// Récupérer la liste des joueurs utilisant un client spécifique
+List<Player> lunarPlayers = api.getPlayersByClientBrand("lunarclient:v1_20");
+
+// Obtenir les statistiques globales de connexion
+Map<String, Integer> stats = api.getGlobalStats();
+stats.forEach((brandName, count) -> {
+    System.out.println("Client: " + brandName + " | Connectés: " + count);
+});
+
+// Nettoyer un nom de client complexe
+String cleanName = api.getBaseBrand("lunarclient:v1_20_4"); // Retourne "LunarClient"
+```
+
+---
+
+## 📜 Commandes & Permissions
+
+| Commande | Description | Permission |
+| :--- | :--- | :--- |
+| `/cdetect info <joueur>` | Affiche le client et le statut Bedrock d'un joueur | `clientdetector.admin` |
+| `/cdetect gui` | Ouvre le menu interactif répertoriant les clients actifs | `clientdetector.admin` |
+| `/cdetect stats` | Affiche la répartition en % des clients sur le serveur | `clientdetector.admin` |
+| `/cdetect dump` | Génère un rapport `pastes.dev` des statistiques actuelles | `clientdetector.admin` |
+| `/cdetect reload` | Recharge le fichier de configuration `config.yml` | `clientdetector.admin` |
+
+### Permissions spéciales :
+- `clientdetector.admin` : Donnée par défaut pour toutes les commandes d'administration.
+- `clientdetector.bypass.blacklist` : Permet à un joueur de contourner les sanctions de la blacklist.
+
+---
+
+## 🛠️ Compilation
+
+Pour compiler le projet vous-même :
+1. Clonez le dépôt.
+2. Assurez-vous d'avoir **Maven** et **Java 21** installés.
+3. Exécutez la commande suivante :
+```bash
+mvn clean package
+```
+
+---
+
 ## 📂 Configuration (`config.yml`)
 
 Le plugin utilise le format **MiniMessage**. Vous pouvez utiliser des balises comme `<gradient:#55ffff:#5555ff>` ou des codes HEX `<#FFFFFF>`.
@@ -63,7 +148,7 @@ messages:
 
 webhooks:
   enabled: true
-  url: "[https://discord.com/api/webhooks/](https://discord.com/api/webhooks/)..."
+  url: "https://discord.com/api/webhooks/..."
   all-clients: false # Si true, ignore la liste et alerte pour tout le monde
   alert-bedrock: true
   alert-brands:
@@ -80,3 +165,4 @@ blacklist:
   actions:
     - "NOTIFY"
     - "KICK:<red>Les clients modifiés ne sont pas autorisés sur ce serveur !"
+```
