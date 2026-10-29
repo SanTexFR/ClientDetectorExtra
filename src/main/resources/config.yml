@@ -37,3 +37,18 @@ webhooks:
     - "forge"
     - "fabric"
   message: "🔔 **%player%** a rejoint avec **%brand%** (Bedrock: %is_bedrock%)"
+
+blacklist:
+  enabled: true
+  # Mots-clés déclencheurs (insensible à la casse)
+  restricted-brands:
+    - "meteor"
+    - "wurst"
+    - "cheat"
+  # Actions déclenchées si un mot-clé correspond.
+  # Types disponibles : KICK, BAN, COMMAND, NOTIFY
+  actions:
+    - "NOTIFY" # Alerte les administrateurs en jeu
+    - "KICK:<red>Les clients modifiés ne sont pas autorisés sur ce serveur !"
+    # - "COMMAND:kick %player% Client interdit"
+    # - "BAN:Triche (Client Interdit)"

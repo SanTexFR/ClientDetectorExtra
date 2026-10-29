@@ -19,12 +19,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings({"unused","UnusedReturnValue"})
 public class DetectorManager implements Listener{
-    //VARIABLES(STATICS)
-    private static final@NotNull ConcurrentHashMap<@NotNull String,@NotNull Set<@NotNull Player>>clientCache=new ConcurrentHashMap<>();
+    private static final @NotNull ConcurrentHashMap<@NotNull String,@NotNull Set<@NotNull Player>> clientCache = new ConcurrentHashMap<>();
     private static final @NotNull ConcurrentHashMap<UUID, String> playerToBrand = new ConcurrentHashMap<>();
 
-    //METHODS(STATICS)
-    public static@NotNull ConcurrentHashMap<@NotNull String,@NotNull Set<@NotNull Player>>getClientCache(){
+    public static @NotNull ConcurrentHashMap<@NotNull String,@NotNull Set<@NotNull Player>> getClientCache(){
         return clientCache;
     }
 
@@ -45,7 +43,6 @@ public class DetectorManager implements Listener{
         clientCache.computeIfAbsent(newBrand, k -> ConcurrentHashMap.newKeySet()).add(p);
     }
 
-    //METHODS(INSTANCES)
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         final ClientDetectorExtra instance = ClientDetectorExtra.getInstance();
@@ -54,21 +51,23 @@ public class DetectorManager implements Listener{
         ClientDetectorExtra.getServerImplementation().entity(p).runDelayed(() -> {
             if (!p.isOnline()) return;
 
-            final String pName=p.getName();
-
+            final String pName = p.getName();
             final ClientDetectorAPI api = ClientDetectorExtra.getApi();
             final String brand = api.getClientBrand(p);
             final boolean bedrock = api.isBedrock(p);
 
             updateBrand(p, brand);
 
+            // 1. Déclencher l'événement personnalisé
             ClientDetectorExtra.getServerImplementation().global().execute(() -> {
                 PlayerClientDetectEvent detectEvent = new PlayerClientDetectEvent(p, brand, bedrock);
                 Bukkit.getPluginManager().callEvent(detectEvent);
             });
 
-            ClientDetectorExtra.getServerImplementation().async().runNow(() -> {
+            // 2. Gestion de la Blacklist & Actions Automatiques
+            checkBlacklistAndExecuteActions(instance, p, brand);
 
+            ClientDetectorExtra.getServerImplementation().async().runNow(() -> {
                 final String format = instance.getRawMessage("player-info");
                 final String message = format
                         .replace("%player%", pName)
@@ -82,27 +81,61 @@ public class DetectorManager implements Listener{
 
                 if (instance.isNotifyAdmin()) {
                     final String perm = instance.getAdminPermission();
-                    Bukkit.getGlobalRegionScheduler().execute(instance, () -> {
+                    ClientDetectorExtra.getServerImplementation().global().run(() -> {
                         for (Player admin : Bukkit.getOnlinePlayers()) {
                             if (admin.hasPermission(perm)) {
                                 admin.sendMessage(finalMessage);
                             }
                         }
                     });
-                    ClientDetectorExtra.getServerImplementation().global().run(() -> {
-                        for (Player admin : Bukkit.getOnlinePlayers()) {
-                            if (admin.hasPermission(perm)) admin.sendMessage(finalMessage);
-                        }
-                    });
                 }
 
-
-                CompletableFuture.runAsync(() ->
-                    handleWebhook(instance, pName, brand, bedrock)
-                );
-
+                CompletableFuture.runAsync(() -> handleWebhook(instance, pName, brand, bedrock));
             });
         }, 3L);
+    }
+
+    private void checkBlacklistAndExecuteActions(ClientDetectorExtra instance, Player p, String brand) {
+        if (!instance.getConfig().getBoolean("blacklist.enabled", false)) return;
+
+        List<String> blacklistedKeywords = instance.getConfig().getStringList("blacklist.restricted-brands");
+        boolean isRestricted = false;
+
+        for (String keyword : blacklistedKeywords) {
+            if (brand.toLowerCase().contains(keyword.toLowerCase())) {
+                isRestricted = true;
+                break;
+            }
+        }
+
+        if (isRestricted) {
+            List<String> actions = instance.getConfig().getStringList("blacklist.actions");
+            for (String action : actions) {
+                String[] parts = action.split(":", 2);
+                String type = parts[0].toUpperCase();
+                String value = parts.length > 1 ? parts[1].replace("%player%", p.getName()) : "";
+
+                ClientDetectorExtra.getServerImplementation().global().run(() -> {
+                    switch (type) {
+                        case "KICK":
+                            p.kick(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(value.isEmpty() ? "<red>Client non autorisé !" : value));
+                            break;
+                        case "BAN":
+                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "ban " + p.getName() + " " + value);
+                            break;
+                        case "COMMAND":
+                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), value);
+                            break;
+                        case "NOTIFY":
+                            String alertMsg = instance.getPrefix() + "§c[Alerte Blacklist] §f" + p.getName() + " utilise un client interdit : §e" + brand;
+                            for (Player admin : Bukkit.getOnlinePlayers()) {
+                                if (admin.hasPermission(instance.getAdminPermission())) admin.sendMessage(alertMsg);
+                            }
+                            break;
+                    }
+                });
+            }
+        }
     }
 
     private void handleWebhook(ClientDetectorExtra instance, String name, String brand, boolean bedrock) {
@@ -138,13 +171,12 @@ public class DetectorManager implements Listener{
     public void onQuit(PlayerQuitEvent e){
         final Player p = e.getPlayer();
         final UUID uuid = p.getUniqueId();
-
         String brand = playerToBrand.remove(uuid);
 
-        if (brand == null)return;
+        if (brand == null) return;
 
         Set<Player> players = clientCache.get(brand);
-        if(players == null)return;
+        if (players == null) return;
 
         players.remove(p);
         if (players.isEmpty()) {

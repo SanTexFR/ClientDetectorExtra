@@ -69,11 +69,18 @@ public class ClientCommand implements CommandExecutor{
             return true;
         }
 
+        if(args.length > 0 && args[0].equalsIgnoreCase("dump")) {
+            s.sendMessage(instance.getPrefix() + "§eGénération du rapport de dump en cours...");
+            santexfr.utils.HastebinUtils.uploadDump(s);
+            return true;
+        }
+
         s.sendMessage("§b--- ClientDetectorExtra ---");
         s.sendMessage("§f/"+label+" info <joueur> §7- Voir le client d'un joueur");
         s.sendMessage("§f/"+label+" reload §7- Recharge la config");
         s.sendMessage("§f/"+label+" gui §7- Ouvre le menu des clients");
         s.sendMessage("§f/"+label+" stats §7- Affiche les pourcentages");
+        s.sendMessage("§f/"+label+" dump §7- Génère un lien Hastebin des statistiques");
         return true;
     }
 }
