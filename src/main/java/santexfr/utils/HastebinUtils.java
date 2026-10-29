@@ -7,7 +7,6 @@ import santexfr.ClientDetectorExtra;
 import santexfr.api.ClientDetectorAPI;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -39,16 +38,18 @@ public class HastebinUtils {
                             .append("\n");
                 }
 
-                HttpURLConnection conn = (HttpURLConnection) URI.create("https://hastebin.com/documents").toURL().openConnection();
+                // Utilisation de l'API pastes.dev (très stable pour les plugins Minecraft)
+                HttpURLConnection conn = (HttpURLConnection) URI.create("https://api.pastes.dev/post").toURL().openConnection();
                 conn.setRequestMethod("POST");
-                conn.setRequestProperty("User-Agent", "ClientDetectorExtra");
+                conn.setRequestProperty("Content-Type", "text/plain; charset=utf-8");
+                conn.setRequestProperty("User-Agent", "ClientDetectorExtra-Plugin");
                 conn.setDoOutput(true);
 
                 try (OutputStream os = conn.getOutputStream()) {
                     os.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                 }
 
-                String url = getString(conn);
+                String url = getPasteUrl(conn);
 
                 ClientDetectorExtra.getServerImplementation().global().run(() ->
                         sender.sendMessage(ClientDetectorExtra.getInstance().getPrefix() + "§aDump généré avec succès : §b" + url)
@@ -62,7 +63,11 @@ public class HastebinUtils {
         });
     }
 
-    private static @NonNull String getString(HttpURLConnection conn) throws IOException {
+    private static @NonNull String getPasteUrl(HttpURLConnection conn) throws Exception {
+        if (conn.getResponseCode() != 201 && conn.getResponseCode() != 200) {
+            throw new RuntimeException("HTTP Code " + conn.getResponseCode());
+        }
+
         BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
         StringBuilder response = new StringBuilder();
         String line;
@@ -71,8 +76,14 @@ public class HastebinUtils {
         }
         br.close();
 
+        // Exemple de réponse JSON : {"key":"abc123xyz"}
         String raw = response.toString();
         String key = raw.contains("\"key\":\"") ? raw.split("\"key\":\"")[1].split("\"")[0] : "";
-        return key.isEmpty() ? "Erreur de génération" : "https://hastebin.com/" + key;
+
+        if (key.isEmpty()) {
+            throw new RuntimeException("Impossible d'extraire la clé du paste.");
+        }
+
+        return "https://pastes.dev/" + key;
     }
 }
